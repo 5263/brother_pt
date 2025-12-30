@@ -91,6 +91,14 @@ class Mode(IntFlag):
     MIRROR_PRINTING = 0x80
 
 
+class AdvancedMode(IntFlag):
+    HALF_CUT = 0x04
+    NO_CHAIN = 0x08
+    SPECIAL_TAPE = 0x10
+    HIGH_RESOLUTION = 0x40
+    NO_BUFFER_CLEARING = 0x80
+
+
 class StatusType(IntEnum):
     REPLY_TO_STATUS_REQUEST = 0x00
     PRINTING_COMPLETED = 0x01
@@ -200,9 +208,10 @@ def set_mode(mode: Mode = Mode.AUTO_CUT):
         mode.to_bytes(1, "big")
 
 
-def set_advanced_mode():
+def set_advanced_mode(advanced_mode: AdvancedMode = AdvancedMode.NO_CHAIN):
     # set print chaining off [1B 69 4B {08}]
-    return b"\x1B\x69\x4B\x08"
+    return b"\x1B\x69\x4B" +\
+        advanced_mode.to_bytes(1, "big")
 
 
 def margin_amount(dots: int = 0):
