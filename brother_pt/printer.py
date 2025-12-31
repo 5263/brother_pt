@@ -109,12 +109,16 @@ class BrotherPt:
     def text_color(self) -> TextColor:
         return self._text_color
 
-    def print_data(self, data:bytes, margin_px:int):
+    def print_data(
+        self, data: bytes, margin_px: int, *, print_chaining: bool = False
+    ):
         self.__write(enter_dynamic_command_mode())
         self.__write(enable_status_notification())
         self.__write(print_information(data, self.media_width))
         self.__write(set_mode())
-        self.__write(set_advanced_mode())
+        self.__write(
+            set_advanced_mode((not print_chaining) * AdvancedMode.NO_CHAIN)
+        )
         self.__write(margin_amount(margin_px))
         self.__write(set_compression_mode())
         for cmd in gen_raster_commands(data):
@@ -150,14 +154,16 @@ class BrotherPt:
                         error_message = error_message[:-1]
                     raise RuntimeError(error_message)
 
-    def print_image(self, image: Image, margin_px: int = 0):
+    def print_image(
+        self, image: Image, margin_px: int = 0, *, print_chaining: bool = False
+    ):
         self.update_status()
         image = prepare_image(image, self.media_width)
         if (image.width + margin_px) < MINIMUM_TAPE_POINTS:
             warnings.warn("Image (%i) + cut margin (%i) is smaller than minimum tape width (%i) ... "
                           "cutting length will be extended" % (image.width, margin_px, MINIMUM_TAPE_POINTS))
         data = raster_image(image, self.media_width)
-        self.print_data(data, margin_px)
+        self.print_data(data, margin_px, print_chaining=print_chaining)
 
 
 if __name__ == '__main__':
